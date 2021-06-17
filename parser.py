@@ -1,5 +1,9 @@
 
+QUOTE_REPLACE = "==**=="
+
 def parse_log_line(line):
+    line = line.replace('\\"', QUOTE_REPLACE)
+
     cut_index = line.find(' ')
     ip = line[0:cut_index]
     line = line[cut_index+1:]
@@ -17,6 +21,7 @@ def parse_log_line(line):
     cut_index = line.find(' ')
     request_url = line[0:cut_index]
     line = line[cut_index+1:]
+    line = line.lstrip()
 
     cut_index = line.find(' ')
     line = line[cut_index+1:]
@@ -41,6 +46,13 @@ def parse_log_line(line):
     line = line[cut_index+2:]
 
     response_time = line
+
+    request_url = request_url.replace(QUOTE_REPLACE, '\\"')
+    user_agent = user_agent.replace(QUOTE_REPLACE, '\\"')
+    referrer = referrer.replace(QUOTE_REPLACE, '\\"')
+
+    if response_length == '-':
+        response_length = '0'
 
     return {
         "ip": ip,
