@@ -48,14 +48,11 @@ for file_name in files_list:
                 slowest_requests.append(log_record)
                 slowest_requests = sorted(slowest_requests, reverse=True, key=lambda record: record["response_time"])
             else:
-                for slow_request in slowest_requests:
-                    if log_record["response_time"] > slow_request["response_time"]:
-                        slowest_requests.append(log_record)
-                        slowest_requests = sorted(slowest_requests, reverse=True, key=lambda record: record["response_time"])[:3]
-                        break
-
-
-
+                last_element = slowest_requests[len(slowest_requests)-1]
+                if log_record["response_time"] > last_element["response_time"]:
+                    slowest_requests.append(log_record)
+                    slowest_requests = sorted(slowest_requests, reverse=True,
+                                              key=lambda record: record["response_time"])[:3]
 
 top_ip_list = sorted(requests_by_ip_counter, key=requests_by_ip_counter.get, reverse=True)[:3]
 
@@ -78,8 +75,3 @@ for slow_request in slowest_requests:
         " url: " + slow_request["request_url"] +
         " ip: " + slow_request["ip"] +
         " response time: " + str(slow_request["response_time"]))
-
-
-# print(top_ip_list)
-# print(requests_by_ip_counter)
-# print(slowest_requests)
