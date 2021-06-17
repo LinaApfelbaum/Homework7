@@ -1,8 +1,9 @@
+import json
 import sys
 from pathlib import Path
 import glob
 
-from parser import parse_log_line
+from parser import LogsParser
 
 if len(sys.argv) != 2:
     print("Usage:\n python logs_parser.py logs_directory\n or\n python logs_parser.py path_to_log.log")
@@ -19,57 +20,26 @@ else:
     exit(1)
 
 
-requests_counter = 0
-request_methods_counter = {}
-requests_by_ip_counter = {}
-slowest_requests = []
+parser = LogsParser()
+results = parser.parse(files_list)
 
-for file_name in files_list:
-    print(file_name)
-    with open(file_name) as file:
-        for line in file:
-            line = line.rstrip()
-            requests_counter += 1
-            log_record = parse_log_line(line)
-
-            if log_record["request_method"] not in request_methods_counter:
-                request_methods_counter[log_record["request_method"]] = 1
-            else:
-                request_methods_counter[log_record["request_method"]] += 1
-
-
-            if log_record["ip"] not in requests_by_ip_counter:
-                requests_by_ip_counter[log_record["ip"]] = 1
-            else:
-                requests_by_ip_counter[log_record["ip"]] += 1
-
-
-            if len(slowest_requests) < 3:
-                slowest_requests.append(log_record)
-                slowest_requests = sorted(slowest_requests, reverse=True, key=lambda record: record["response_time"])
-            else:
-                last_element = slowest_requests[len(slowest_requests)-1]
-                if log_record["response_time"] > last_element["response_time"]:
-                    slowest_requests.append(log_record)
-                    slowest_requests = sorted(slowest_requests, reverse=True,
-                                              key=lambda record: record["response_time"])[:3]
-
-top_ip_list = sorted(requests_by_ip_counter, key=requests_by_ip_counter.get, reverse=True)[:3]
+with open('results.txt', 'w') as outfile:
+    json.dump(results, outfile, indent=2, sort_keys=True)
 
 
 print("Result:")
-print("Total requests: " + str(requests_counter))
+print("Total requests: " + str(results["requests_counter"]))
 print("")
 print("Requests by methods:")
-for method in request_methods_counter:
-    print(method + ": " + str(request_methods_counter[method]))
+for method in results["request_methods_counter"]:
+    print(method + ": " + str(results["request_methods_counter"][method]))
 print("")
 print("Top requests by IP:")
-for ip in top_ip_list:
-    print(ip + ": " + str(requests_by_ip_counter[ip]))
+for ip in results["top_ip_list"]:
+    print(ip + ": " + str(results["requests_by_ip_counter"][ip]))
 print("")
 print("Top slowest requests:")
-for slow_request in slowest_requests:
+for slow_request in results["slowest_requests"]:
     print(
         "method: " + slow_request["request_method"] +
         " url: " + slow_request["request_url"] +
