@@ -132,3 +132,6 @@ dmypy.json
 
 # access.log
 access.log
+
+# parser log
+parser_log.log

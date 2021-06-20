@@ -1,4 +1,7 @@
 class LogsParser:
+    def __init__(self, logger):
+        self.logger = logger
+
     def parse(self, files):
         slowest_requests_rate = 3
         top_ip_rate = 3
@@ -11,8 +14,14 @@ class LogsParser:
             with open(file_name) as file:
                 for line in file:
                     line = line.rstrip()
+
+                    try:
+                        log_record = parse_log_line(line)
+                    except BaseException as error:
+                        self.logger.error(error)
+                        continue
+
                     requests_counter += 1
-                    log_record = parse_log_line(line)
 
                     if log_record["request_method"] not in request_methods_counter:
                         request_methods_counter[log_record["request_method"]] = 1

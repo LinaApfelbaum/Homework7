@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 import glob
+import logging
 
 from parser import LogsParser
 
@@ -19,8 +20,12 @@ else:
     print(f"Error: {sys.argv[1]} is not valid file or directory")
     exit(1)
 
+logger = logging.getLogger('ParserLogger')
+log_file_handler = logging.FileHandler('parser_log.log')
+logger.addHandler(log_file_handler)
+logger.setLevel(logging.INFO)
 
-parser = LogsParser()
+parser = LogsParser(logger)
 results = parser.parse(files_list)
 
 with open('results.txt', 'w') as outfile:
